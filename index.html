@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloxy Guys - ربح Robux مجاني</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .coin-animation {
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold">🎮 Bloxy Guys</h1>
+                <div id="userInfo" class="hidden items-center space-x-4 space-x-reverse">
+                    <span id="coinsDisplay" class="bg-white text-purple-600 px-4 py-2 rounded-full font-bold coin-animation">
+                        0 💎
+                    </span>
+                    <img id="userAvatar" class="w-10 h-10 rounded-full border-2 border-white" src="" alt="Avatar">
+                    <span id="userName" class="font-semibold"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        
+        <!-- Login Section -->
+        <div id="loginSection" class="bg-white rounded-lg shadow-xl p-8 mb-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">ابدأ الآن واربح Robux مجاني!</h2>
+                <p class="text-gray-600">أدخل اسم مستخدم Roblox الخاص بك للبدء</p>
+            </div>
+            
+            <div class="max-w-md mx-auto">
+                <div class="mb-4">
+                    <input 
+                        type="text" 
+                        id="usernameInput" 
+                        placeholder="اسم مستخدم Roblox" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                    >
+                </div>
+                <button 
+                    id="loginBtn" 
+                    class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-200"
+                >
+                    تسجيل الدخول
+                </button>
+                <div id="loginError" class="hidden mt-4 p-4 bg-red-100 text-red-700 rounded-lg"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="hidden">
+            
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">إجمالي Robux</p>
+                            <p id="totalCoins" class="text-3xl font-bold text-purple-600">0</p>
+                        </div>
+                        <div class="text-4xl">💎</div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">العروض المكتملة</p>
+                            <p id="totalOffers" class="text-3xl font-bold text-green-600">0</p>
+                        </div>
+                        <div class="text-4xl">✅</div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">عمليات السحب</p>
+                            <p id="totalWithdrawals" class="text-3xl font-bold text-blue-600">0</p>
+                        </div>
+                        <div class="text-4xl">🎁</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="bg-white rounded-lg shadow-xl overflow-hidden mb-8">
+                <div class="flex border-b">
+                    <button class="tab-btn flex-1 py-4 px-6 text-center font-semibold border-b-2 border-purple-600 text-purple-600" data-tab="offers">
+                        العروض
+                    </button>
+                    <button class="tab-btn flex-1 py-4 px-6 text-center font-semibold text-gray-600 hover:text-purple-600" data-tab="social">
+                        المتابعة على السوشيال ميديا
+                    </button>
+                    <button class="tab-btn flex-1 py-4 px-6 text-center font-semibold text-gray-600 hover:text-purple-600" data-tab="withdraw">
+                        السحب
+                    </button>
+                    <button class="tab-btn flex-1 py-4 px-6 text-center font-semibold text-gray-600 hover:text-purple-600" data-tab="profile">
+                        الملف الشخصي
+                    </button>
+                </div>
+
+                <!-- Offers Tab -->
+                <div id="offersTab" class="tab-content p-6">
+                    <h3 class="text-xl font-bold mb-4">العروض المتاحة</h3>
+                    <p class="text-gray-600 mb-4">أكمل العروض أدناه لكسب Robux مجاني!</p>
+                    
+                    <!-- Offerwall Container -->
+                    <div id="offerwallContainer" class="bg-gray-50 rounded-lg p-6 min-h-[400px]">
+                        <p class="text-center text-gray-500">جاري تحميل العروض...</p>
+                    </div>
+                </div>
+
+                <!-- Social Tab -->
+                <div id="socialTab" class="tab-content hidden p-6">
+                    <h3 class="text-xl font-bold mb-4">تابعنا واربح مكافآت!</h3>
+                    
+                    <div class="space-y-4">
+                        <!-- YouTube -->
+                        <div class="flex items-center justify-between p-4 bg-red-50 rounded-lg">
+                            <div class="flex items-center space-x-4 space-x-reverse">
+                                <div class="text-3xl">▶️</div>
+                                <div>
+                                    <h4 class="font-semibold">اشترك في قناتنا على YouTube</h4>
+                                    <p class="text-sm text-gray-600">اربح 50 Robux</p>
+                                </div>
+                            </div>
+                            <button 
+                                class="social-btn bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"
+                                data-network="youtube"
+                                data-coins="50"
+                                data-url="https://youtube.com/@yourChannel"
+                            >
+                                متابعة
+                            </button>
+                        </div>
+
+                        <!-- Instagram -->
+                        <div class="flex items-center justify-between p-4 bg-pink-50 rounded-lg">
+                            <div class="flex items-center space-x-4 space-x-reverse">
+                                <div class="text-3xl">📷</div>
+                                <div>
+                                    <h4 class="font-semibold">تابعنا على Instagram</h4>
+                                    <p class="text-sm text-gray-600">اربح 30 Robux</p>
+                                </div>
+                            </div>
+                            <button 
+                                class="social-btn bg-pink-600 text-white px-6 py-2 rounded-lg hover:bg-pink-700"
+                                data-network="instagram"
+                                data-coins="30"
+                                data-url="https://instagram.com/yourAccount"
+                            >
+                                متابعة
+                            </button>
+                        </div>
+
+                        <!-- TikTok -->
+                        <div class="flex items-center justify-between p-4 bg-gray-900 text-white rounded-lg">
+                            <div class="flex items-center space-x-4 space-x-reverse">
+                                <div class="text-3xl">🎵</div>
+                                <div>
+                                    <h4 class="font-semibold">تابعنا على TikTok</h4>
+                                    <p class="text-sm text-gray-300">اربح 40 Robux</p>
+                                </div>
+                            </div>
+                            <button 
+                                class="social-btn bg-white text-gray-900 px-6 py-2 rounded-lg hover:bg-gray-100"
+                                data-network="tiktok"
+                                data-coins="40"
+                                data-url="https://tiktok.com/@yourAccount"
+                            >
+                                متابعة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Withdraw Tab -->
+                <div id="withdrawTab" class="tab-content hidden p-6">
+                    <h3 class="text-xl font-bold mb-4">سحب Robux</h3>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                        <p class="text-sm text-yellow-800">
+                            ⚠️ الحد الأدنى للسحب: 7 Robux
+                        </p>
+                    </div>
+
+                    <!-- Phone Number Input -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2">رقم الهاتف (للتواصل)</label>
+                        <input 
+                            type="tel" 
+                            id="phoneInput" 
+                            placeholder="+212612345678"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600"
+                        >
+                        <button 
+                            id="savePhoneBtn"
+                            class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                        >
+                            حفظ رقم الهاتف
+                        </button>
+                    </div>
+
+                    <!-- Withdraw Amount -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2">كمية Robux للسحب</label>
+                        <input 
+                            type="number" 
+                            id="withdrawAmount" 
+                            placeholder="أدخل الكمية"
+                            min="7"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600"
+                        >
+                    </div>
+
+                    <button 
+                        id="withdrawBtn"
+                        class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700"
+                    >
+                        طلب السحب
+                    </button>
+
+                    <!-- Withdrawal History -->
+                    <div class="mt-8">
+                        <h4 class="font-bold mb-4">سجل السحوبات</h4>
+                        <div id="withdrawalHistory" class="space-y-2">
+                            <p class="text-center text-gray-500">لا توجد عمليات سحب بعد</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Tab -->
+                <div id="profileTab" class="tab-content hidden p-6">
+                    <h3 class="text-xl font-bold mb-4">الملف الشخصي</h3>
+                    
+                    <div class="flex items-center space-x-6 space-x-reverse mb-6">
+                        <img id="profileAvatar" class="w-24 h-24 rounded-full border-4 border-purple-600" src="" alt="Avatar">
+                        <div>
+                            <h4 id="profileUsername" class="text-2xl font-bold"></h4>
+                            <p id="profileUserId" class="text-gray-600"></p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-600">Robux الحالي</p>
+                            <p id="profileCoins" class="text-2xl font-bold text-purple-600">0</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-600">إجمالي المسحوب</p>
+                            <p id="profileWithdrawn" class="text-2xl font-bold text-green-600">0</p>
+                        </div>
+                    </div>
+
+                    <button 
+                        id="logoutBtn"
+                        class="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700"
+                    >
+                        تسجيل الخروج
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p class="text-gray-700 font-semibold">جاري التحميل...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+        <p id="toastMessage"></p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
